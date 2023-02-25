@@ -1,20 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas', num:'073-323-823', id: 1},
-    { name: 'Ada Lovelace', num: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', num: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', num: '39-23-6423122', id: 4 }
-
-  ]) 
-  const [filtPersons, setFiltPersons] = useState(persons) 
+  const [persons, setPersons] = useState([]) 
+  const [toFilt, setToFilt] = useState(false) 
   const [newName, setNewName] = useState('')
   const [newNum, setNewNum] = useState('')
   const [newFilt, setNewFilt] = useState('')
+
+  useEffect(() => {      
+    axios      
+      .get('http://localhost:3001/persons')      
+      .then(response => {   
+        setPersons(response.data)})}, [])  
 
   const handleInput = (event) => {
     setNewName(event.target.value)
@@ -26,23 +27,24 @@ const App = () => {
 
   const handleInputFilt = (event) => {
     setNewFilt(event.target.value)
-    setFiltPersons(persons.filter(elem => elem.name.toLowerCase().includes(event.target.value.toLowerCase())))
+    setToFilt( event.target.value !== '')
   }
 
   const newPhoneNumber = (event) => {
     event.preventDefault()
     if (persons.find(elem => elem.name === newName) === undefined){
-      setPersons(persons.concat({name: newName, num:newNum, id: persons.length + 1})) 
+      setPersons(persons.concat({name: newName, number:newNum, id: persons.length + 1})) 
       setNewName('')
       setNewNum('')
-      setFiltPersons(persons)
     }
     else {
       alert(`${newName} is already added to phonebook`)
     }
     
+    
   }
-  
+  const Filtered = toFilt ? persons.filter(elem => elem.name.toLowerCase().includes(newFilt.toLowerCase())) : persons 
+
   return (
     <div>
       <h2>Phonebook</h2>
@@ -56,7 +58,7 @@ const App = () => {
         subHandle = {newPhoneNumber}
         />
       <h2>Numbers</h2>
-      <Persons persons = {filtPersons}/>
+      <Persons persons = {Filtered}/>
     </div>
   )
 }
